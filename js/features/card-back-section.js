@@ -20,17 +20,8 @@ function cardBackSectionHandler(t) {
         action: {
           text: 'Remove All',
           callback: async function(t) {
-            // Show confirmation dialog
-            const confirmed = await t.confirm({
-              message: 'Are you sure you want to remove all dependencies from this card?',
-              confirmText: 'Remove All',
-              onConfirm: async function(t) {
-                return true;
-              },
-              confirmStyle: 'danger'
-            });
-
-            if (!confirmed) {
+            // Show native confirmation dialog
+            if (!confirm('Are you sure you want to remove all dependencies from this card?\n\nThis will also remove the reverse dependencies from all linked cards.\n\nThis action cannot be undone.')) {
               return;
             }
 

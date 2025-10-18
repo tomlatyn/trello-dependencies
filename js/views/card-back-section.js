@@ -70,7 +70,7 @@ async function loadDependencies() {
       </div>
       <div class="dependency-actions">
         <button class="btn-resolve ${dep.resolved ? 'active' : ''}" data-dep-id="${dep.id}" title="${dep.resolved ? 'Unresolve' : 'Resolve'}">
-          ${dep.resolved ? '✓' : '○'}
+          ✓
         </button>
         <button class="btn-remove" data-dep-id="${dep.id}" data-linked-card-id="${dep.cardId}" title="Remove">
           ×
@@ -141,17 +141,10 @@ async function toggleResolve(depId) {
 
 // Remove dependency from both cards
 async function removeDependency(depId, linkedCardId) {
-  // Show confirmation dialog
-  const confirmed = await t.confirm({
-    message: 'Are you sure you want to remove this dependency?',
-    confirmText: 'Remove',
-    onConfirm: async function(t) {
-      return true;
-    },
-    confirmStyle: 'danger'
-  });
-
-  if (!confirmed) return;
+  // Show native confirmation dialog
+  if (!confirm('Are you sure you want to remove this dependency?\n\nThis will also remove the reverse dependency from the linked card.')) {
+    return;
+  }
 
   // Get dependencies from current card
   const currentCardDeps = await t.get(currentCardId, 'shared', 'dependencies') || [];
