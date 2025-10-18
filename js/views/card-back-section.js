@@ -47,6 +47,31 @@ t.subscribeToThemeChanges(function(theme) {
 // DOM elements
 const dependenciesList = document.getElementById('dependencies-list');
 
+// Resize iframe to fit content
+function resizeToContent() {
+  setTimeout(function() {
+    var body = document.body;
+    var html = document.documentElement;
+
+    // Calculate maximum height of content
+    var height = Math.max(
+      body.scrollHeight,
+      body.offsetHeight,
+      html.clientHeight,
+      html.scrollHeight,
+      html.offsetHeight
+    );
+
+    height += 20; // Add padding buffer
+
+    // Tell Trello to resize iframe to fit content
+    t.sizeTo('body').catch(function(error) {
+      console.log('Resize failed, trying alternative:', error);
+      t.sizeTo('#dependencies-list');
+    });
+  }, 50); // Small delay to allow DOM to settle
+}
+
 // Load and display dependencies
 async function loadDependencies() {
   const card = await t.card('id');
@@ -56,7 +81,7 @@ async function loadDependencies() {
 
   if (dependencies.length === 0) {
     dependenciesList.innerHTML = '<div class="no-dependencies">No dependencies yet</div>';
-    t.sizeTo('#dependencies-list');
+    resizeToContent();
     return;
   }
 
@@ -83,7 +108,7 @@ async function loadDependencies() {
   attachEventListeners();
 
   // Resize iframe to fit content
-  t.sizeTo('#dependencies-list');
+  resizeToContent();
 }
 
 // Attach event listeners to buttons and links

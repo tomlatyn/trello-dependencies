@@ -9,14 +9,12 @@ body {
 
 .dependencies-container {
   width: 100%;
-  overflow: hidden;
 }
 
 #dependencies-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  overflow: visible;
 }
 
 .dependency-item {
