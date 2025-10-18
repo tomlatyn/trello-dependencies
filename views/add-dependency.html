@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
+  <link rel="stylesheet" href="../styles/popup.css">
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+</head>
+<body>
+  <div class="popup-container">
+    <div class="form-group">
+      <label for="dependency-type">Dependency Type</label>
+      <select id="dependency-type" class="select-input">
+        <option value="blocks">Blocks</option>
+        <option value="is-blocked-by">Is Blocked By</option>
+        <option value="is-related-to">Is Related To</option>
+        <option value="is-duplicate-to">Is Duplicate To</option>
+        <option value="is-child-to">Is Child To</option>
+        <option value="is-parent-to">Is Parent To</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="card-search">Search Cards</label>
+      <input
+        type="text"
+        id="card-search"
+        class="text-input"
+        placeholder="Type to search cards..."
+      >
+    </div>
+
+    <div class="cards-list-container">
+      <div id="cards-list" class="cards-list">
+        <div class="no-cards">Type to search for cards</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/views/add-dependency.js"></script>
+</body>
+</html>

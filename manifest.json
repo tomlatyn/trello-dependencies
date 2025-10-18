@@ -1,0 +1,17 @@
+{
+  "name": "Card Dependencies",
+  "details": "Manage card dependencies with blocks, relationships, and parent-child connections",
+  "icon": {
+    "url": "./images/icon.png"
+  },
+  "author": "Your Name",
+  "capabilities": [
+    "card-buttons",
+    "card-back-section"
+  ],
+  "connectors": {
+    "iframe": {
+      "url": "./index.html"
+    }
+  }
+}

@@ -1,0 +1,166 @@
+const t = window.TrelloPowerUp.iframe();
+
+// Display names for dependency types
+const DEPENDENCY_DISPLAY_NAMES = {
+  'blocks': 'Blocks',
+  'is-blocked-by': 'Is Blocked By',
+  'is-related-to': 'Is Related To',
+  'is-duplicate-to': 'Is Duplicate To',
+  'is-child-to': 'Is Child To',
+  'is-parent-to': 'Is Parent To'
+};
+
+// Reverse dependency mapping
+const REVERSE_DEPENDENCY_MAP = {
+  'blocks': 'is-blocked-by',
+  'is-blocked-by': 'blocks',
+  'is-related-to': 'is-related-to',
+  'is-duplicate-to': 'is-duplicate-to',
+  'is-child-to': 'is-parent-to',
+  'is-parent-to': 'is-child-to'
+};
+
+let currentCardId = '';
+
+// Theme handling
+function applyTheme() {
+  const context = t.getContext();
+  const theme = context ? (context.theme || context.initialTheme || 'light') : 'light';
+
+  if (theme === 'dark') {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+}
+
+applyTheme();
+
+t.subscribeToThemeChanges(function(theme) {
+  if (theme === 'dark') {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+});
+
+// DOM elements
+const dependenciesList = document.getElementById('dependencies-list');
+
+// Load and display dependencies
+async function loadDependencies() {
+  const card = await t.card('id');
+  currentCardId = card.id;
+
+  const dependencies = await t.get(currentCardId, 'shared', 'dependencies') || [];
+
+  if (dependencies.length === 0) {
+    dependenciesList.innerHTML = '<div class="no-dependencies">No dependencies yet</div>';
+    t.sizeTo('#dependencies-list');
+    return;
+  }
+
+  dependenciesList.innerHTML = dependencies.map(dep => `
+    <div class="dependency-item">
+      <div class="dependency-info">
+        <span class="dependency-type">${DEPENDENCY_DISPLAY_NAMES[dep.type]}</span>
+        <a href="#" class="card-link ${dep.resolved ? 'resolved' : ''}" data-card-id="${dep.cardId}">
+          ${escapeHtml(dep.cardName)}
+        </a>
+      </div>
+      <div class="dependency-actions">
+        <button class="btn-resolve ${dep.resolved ? 'active' : ''}" data-dep-id="${dep.id}" title="${dep.resolved ? 'Unresolve' : 'Resolve'}">
+          ${dep.resolved ? '✓' : '○'}
+        </button>
+        <button class="btn-remove" data-dep-id="${dep.id}" data-linked-card-id="${dep.cardId}" title="Remove">
+          ×
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  // Add event listeners
+  attachEventListeners();
+
+  // Resize iframe to fit content
+  t.sizeTo('#dependencies-list');
+}
+
+// Attach event listeners to buttons and links
+function attachEventListeners() {
+  // Card links
+  document.querySelectorAll('.card-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const cardId = this.dataset.cardId;
+      t.showCard(cardId);
+    });
+  });
+
+  // Resolve buttons
+  document.querySelectorAll('.btn-resolve').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const depId = this.dataset.depId;
+      await toggleResolve(depId);
+    });
+  });
+
+  // Remove buttons
+  document.querySelectorAll('.btn-remove').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const depId = this.dataset.depId;
+      const linkedCardId = this.dataset.linkedCardId;
+      await removeDependency(depId, linkedCardId);
+    });
+  });
+}
+
+// Toggle resolve status
+async function toggleResolve(depId) {
+  const dependencies = await t.get(currentCardId, 'shared', 'dependencies') || [];
+  const dep = dependencies.find(d => d.id === depId);
+
+  if (dep) {
+    dep.resolved = !dep.resolved;
+    await t.set(currentCardId, 'shared', 'dependencies', dependencies);
+    loadDependencies();
+  }
+}
+
+// Remove dependency from both cards
+async function removeDependency(depId, linkedCardId) {
+  // Get dependencies from current card
+  const currentCardDeps = await t.get(currentCardId, 'shared', 'dependencies') || [];
+
+  // Find the dependency to remove
+  const depToRemove = currentCardDeps.find(d => d.id === depId);
+
+  if (!depToRemove) return;
+
+  // Remove from current card
+  const filteredCurrentDeps = currentCardDeps.filter(d => d.id !== depId);
+  await t.set(currentCardId, 'shared', 'dependencies', filteredCurrentDeps);
+
+  // Remove reverse dependency from linked card
+  const linkedCardDeps = await t.get(linkedCardId, 'shared', 'dependencies') || [];
+  const filteredLinkedDeps = linkedCardDeps.filter(d => d.cardId !== currentCardId);
+  await t.set(linkedCardId, 'shared', 'dependencies', filteredLinkedDeps);
+
+  // Reload dependencies
+  loadDependencies();
+}
+
+// Helper function
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Initialize
+loadDependencies();
+
+// Listen for updates from other popups
+t.render(function() {
+  loadDependencies();
+});
