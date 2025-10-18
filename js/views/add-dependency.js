@@ -21,6 +21,7 @@ const DEPENDENCY_DISPLAY_NAMES = {
 };
 
 let allCards = [];
+let allLists = [];
 let currentCardId = '';
 
 // Theme handling
@@ -52,12 +53,14 @@ const cardsList = document.getElementById('cards-list');
 
 // Initialize
 async function init() {
-  const [cards, card] = await Promise.all([
+  const [cards, lists, card] = await Promise.all([
     t.cards('all'),
+    t.lists('all'),
     t.card('id')
   ]);
 
   currentCardId = card.id;
+  allLists = lists;
 
   // Filter out the current card from the list
   allCards = cards.filter(c => c.id !== currentCardId);
@@ -80,11 +83,17 @@ function searchCards(query) {
     return;
   }
 
-  cardsList.innerHTML = matchingCards.map(card => `
-    <div class="card-item" data-card-id="${card.id}" data-card-name="${escapeHtml(card.name)}">
-      <span class="card-name">${escapeHtml(card.name)}</span>
-    </div>
-  `).join('');
+  cardsList.innerHTML = matchingCards.map(card => {
+    const list = allLists.find(l => l.id === card.idList);
+    const listName = list ? list.name : 'Unknown List';
+
+    return `
+      <div class="card-item" data-card-id="${card.id}" data-card-name="${escapeHtml(card.name)}">
+        <div class="card-name">${escapeHtml(card.name)}</div>
+        <div class="card-list">in list <strong>${escapeHtml(listName)}</strong></div>
+      </div>
+    `;
+  }).join('');
 
   // Add click handlers
   document.querySelectorAll('.card-item').forEach(item => {

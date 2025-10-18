@@ -121,14 +121,38 @@ async function toggleResolve(depId) {
   const dep = dependencies.find(d => d.id === depId);
 
   if (dep) {
-    dep.resolved = !dep.resolved;
+    const newResolvedState = !dep.resolved;
+    dep.resolved = newResolvedState;
     await t.set(currentCardId, 'shared', 'dependencies', dependencies);
+
+    // Update the linked card's reverse dependency
+    const linkedCardId = dep.cardId;
+    const linkedCardDeps = await t.get(linkedCardId, 'shared', 'dependencies') || [];
+    const reverseDep = linkedCardDeps.find(d => d.cardId === currentCardId);
+
+    if (reverseDep) {
+      reverseDep.resolved = newResolvedState;
+      await t.set(linkedCardId, 'shared', 'dependencies', linkedCardDeps);
+    }
+
     loadDependencies();
   }
 }
 
 // Remove dependency from both cards
 async function removeDependency(depId, linkedCardId) {
+  // Show confirmation dialog
+  const confirmed = await t.confirm({
+    message: 'Are you sure you want to remove this dependency?',
+    confirmText: 'Remove',
+    onConfirm: async function(t) {
+      return true;
+    },
+    confirmStyle: 'danger'
+  });
+
+  if (!confirmed) return;
+
   // Get dependencies from current card
   const currentCardDeps = await t.get(currentCardId, 'shared', 'dependencies') || [];
 
@@ -139,12 +163,22 @@ async function removeDependency(depId, linkedCardId) {
 
   // Remove from current card
   const filteredCurrentDeps = currentCardDeps.filter(d => d.id !== depId);
-  await t.set(currentCardId, 'shared', 'dependencies', filteredCurrentDeps);
+
+  if (filteredCurrentDeps.length === 0) {
+    await t.remove(currentCardId, 'shared', 'dependencies');
+  } else {
+    await t.set(currentCardId, 'shared', 'dependencies', filteredCurrentDeps);
+  }
 
   // Remove reverse dependency from linked card
   const linkedCardDeps = await t.get(linkedCardId, 'shared', 'dependencies') || [];
   const filteredLinkedDeps = linkedCardDeps.filter(d => d.cardId !== currentCardId);
-  await t.set(linkedCardId, 'shared', 'dependencies', filteredLinkedDeps);
+
+  if (filteredLinkedDeps.length === 0) {
+    await t.remove(linkedCardId, 'shared', 'dependencies');
+  } else {
+    await t.set(linkedCardId, 'shared', 'dependencies', filteredLinkedDeps);
+  }
 
   // Reload dependencies
   loadDependencies();
