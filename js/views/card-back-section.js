@@ -75,15 +75,8 @@ function resizeToContent() {
 // Load and display dependencies
 async function loadDependencies() {
   try {
-    const card = await t.card('id');
-
-    // Check if the card has changed
-    if (currentCardId && currentCardId !== card.id) {
-      // Card has changed, update current card ID
-      currentCardId = card.id;
-    } else if (!currentCardId) {
-      currentCardId = card.id;
-    }
+    const card = await t.card('id', 'url');
+    currentCardId = card.id;
 
     const dependencies = await t.get(currentCardId, 'shared', 'dependencies') || [];
 
@@ -93,24 +86,32 @@ async function loadDependencies() {
       return;
     }
 
-    dependenciesList.innerHTML = dependencies.map(dep => `
-      <div class="dependency-item">
-        <div class="dependency-info">
-          <span class="dependency-type">${DEPENDENCY_DISPLAY_NAMES[dep.type]}</span>
-          <a href="#" class="card-link ${dep.resolved ? 'resolved' : ''}" data-card-id="${dep.cardId}">
-            ${escapeHtml(dep.cardName)}
-          </a>
+    // Build the base URL from current card URL (remove the card-specific part)
+    const baseUrl = card.url.split('/c/')[0];
+
+    dependenciesList.innerHTML = dependencies.map(dep => {
+      // Construct full Trello card URL
+      const cardUrl = `${baseUrl}/c/${dep.cardId}`;
+
+      return `
+        <div class="dependency-item">
+          <div class="dependency-info">
+            <span class="dependency-type">${DEPENDENCY_DISPLAY_NAMES[dep.type]}</span>
+            <a href="${cardUrl}" class="card-link ${dep.resolved ? 'resolved' : ''}" target="_top">
+              ${escapeHtml(dep.cardName)}
+            </a>
+          </div>
+          <div class="dependency-actions">
+            <button class="btn-resolve ${dep.resolved ? 'active' : ''}" data-dep-id="${dep.id}" title="${dep.resolved ? 'Unresolve' : 'Resolve'}">
+              ✓
+            </button>
+            <button class="btn-remove" data-dep-id="${dep.id}" data-linked-card-id="${dep.cardId}" title="Remove">
+              ×
+            </button>
+          </div>
         </div>
-        <div class="dependency-actions">
-          <button class="btn-resolve ${dep.resolved ? 'active' : ''}" data-dep-id="${dep.id}" title="${dep.resolved ? 'Unresolve' : 'Resolve'}">
-            ✓
-          </button>
-          <button class="btn-remove" data-dep-id="${dep.id}" data-linked-card-id="${dep.cardId}" title="Remove">
-            ×
-          </button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Add event listeners
     attachEventListeners();
@@ -124,15 +125,6 @@ async function loadDependencies() {
 
 // Attach event listeners to buttons and links
 function attachEventListeners() {
-  // Card links
-  document.querySelectorAll('.card-link').forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      const cardId = this.dataset.cardId;
-      t.showCard(cardId);
-    });
-  });
-
   // Resolve buttons
   document.querySelectorAll('.btn-resolve').forEach(btn => {
     btn.addEventListener('click', async function() {
@@ -223,19 +215,7 @@ function escapeHtml(text) {
 // Initialize
 loadDependencies();
 
-// Listen for updates - this will be called when data changes or card context changes
+// Listen for updates - this will be called when data changes
 t.render(function() {
   return loadDependencies();
-});
-
-// Listen for visibility changes to detect when user navigates back to this card
-document.addEventListener('visibilitychange', function() {
-  if (!document.hidden) {
-    loadDependencies();
-  }
-});
-
-// Also listen for window focus
-window.addEventListener('focus', function() {
-  loadDependencies();
 });
