@@ -74,41 +74,52 @@ function resizeToContent() {
 
 // Load and display dependencies
 async function loadDependencies() {
-  const card = await t.card('id');
-  currentCardId = card.id;
+  try {
+    const card = await t.card('id');
 
-  const dependencies = await t.get(currentCardId, 'shared', 'dependencies') || [];
+    // Check if the card has changed
+    if (currentCardId && currentCardId !== card.id) {
+      // Card has changed, update current card ID
+      currentCardId = card.id;
+    } else if (!currentCardId) {
+      currentCardId = card.id;
+    }
 
-  if (dependencies.length === 0) {
-    dependenciesList.innerHTML = '<div class="no-dependencies">No dependencies yet</div>';
+    const dependencies = await t.get(currentCardId, 'shared', 'dependencies') || [];
+
+    if (dependencies.length === 0) {
+      dependenciesList.innerHTML = '<div class="no-dependencies">No dependencies yet</div>';
+      resizeToContent();
+      return;
+    }
+
+    dependenciesList.innerHTML = dependencies.map(dep => `
+      <div class="dependency-item">
+        <div class="dependency-info">
+          <span class="dependency-type">${DEPENDENCY_DISPLAY_NAMES[dep.type]}</span>
+          <a href="#" class="card-link ${dep.resolved ? 'resolved' : ''}" data-card-id="${dep.cardId}">
+            ${escapeHtml(dep.cardName)}
+          </a>
+        </div>
+        <div class="dependency-actions">
+          <button class="btn-resolve ${dep.resolved ? 'active' : ''}" data-dep-id="${dep.id}" title="${dep.resolved ? 'Unresolve' : 'Resolve'}">
+            ✓
+          </button>
+          <button class="btn-remove" data-dep-id="${dep.id}" data-linked-card-id="${dep.cardId}" title="Remove">
+            ×
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    // Add event listeners
+    attachEventListeners();
+
+    // Resize iframe to fit content
     resizeToContent();
-    return;
+  } catch (error) {
+    console.error('Error loading dependencies:', error);
   }
-
-  dependenciesList.innerHTML = dependencies.map(dep => `
-    <div class="dependency-item">
-      <div class="dependency-info">
-        <span class="dependency-type">${DEPENDENCY_DISPLAY_NAMES[dep.type]}</span>
-        <a href="#" class="card-link ${dep.resolved ? 'resolved' : ''}" data-card-id="${dep.cardId}">
-          ${escapeHtml(dep.cardName)}
-        </a>
-      </div>
-      <div class="dependency-actions">
-        <button class="btn-resolve ${dep.resolved ? 'active' : ''}" data-dep-id="${dep.id}" title="${dep.resolved ? 'Unresolve' : 'Resolve'}">
-          ✓
-        </button>
-        <button class="btn-remove" data-dep-id="${dep.id}" data-linked-card-id="${dep.cardId}" title="Remove">
-          ×
-        </button>
-      </div>
-    </div>
-  `).join('');
-
-  // Add event listeners
-  attachEventListeners();
-
-  // Resize iframe to fit content
-  resizeToContent();
 }
 
 // Attach event listeners to buttons and links
@@ -212,22 +223,19 @@ function escapeHtml(text) {
 // Initialize
 loadDependencies();
 
-// Listen for updates from other popups
+// Listen for updates - this will be called when data changes or card context changes
 t.render(function() {
-  loadDependencies();
+  return loadDependencies();
 });
 
-// Listen for card changes (when navigating to different cards)
-let lastCardId = currentCardId;
-setInterval(async function() {
-  try {
-    const card = await t.card('id');
-    if (card.id !== lastCardId) {
-      lastCardId = card.id;
-      currentCardId = card.id;
-      loadDependencies();
-    }
-  } catch (e) {
-    // Card context may not be available
+// Listen for visibility changes to detect when user navigates back to this card
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) {
+    loadDependencies();
   }
-}, 500);
+});
+
+// Also listen for window focus
+window.addEventListener('focus', function() {
+  loadDependencies();
+});
