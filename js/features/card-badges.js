@@ -20,12 +20,9 @@ function cardBadgesHandler(t) {
       }
 
       return [{
-        icon: {
-          dark: './images/icon.png',
-          light: './images/icon.png'
-        },
         text: unresolvedCount.toString(),
-        color: 'red'
+        color: 'red',
+        icon: './images/icon.png'
       }];
     });
 }
