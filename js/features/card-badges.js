@@ -20,7 +20,10 @@ function cardBadgesHandler(t) {
       }
 
       return [{
-        icon: './images/icon.png',
+        icon: {
+          dark: './images/icon.png',
+          light: './images/icon.png'
+        },
         text: unresolvedCount.toString(),
         color: 'red'
       }];

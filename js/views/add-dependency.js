@@ -64,19 +64,28 @@ async function init() {
 
   // Filter out the current card from the list
   allCards = cards.filter(c => c.id !== currentCardId);
+
+  // Show all cards initially
+  searchCards('');
 }
 
 // Search and display cards
 function searchCards(query) {
-  if (!query.trim()) {
-    cardsList.innerHTML = '<div class="no-cards">Type to search for cards</div>';
-    return;
-  }
+  let matchingCards;
 
-  const lowerQuery = query.toLowerCase();
-  const matchingCards = allCards.filter(card =>
-    card.name.toLowerCase().includes(lowerQuery)
-  );
+  if (!query.trim()) {
+    // Show all cards sorted by date created (newest first)
+    matchingCards = [...allCards].sort((a, b) => {
+      // Trello card IDs are time-based, so we can sort by ID
+      // Newer cards have larger IDs
+      return b.id.localeCompare(a.id);
+    });
+  } else {
+    const lowerQuery = query.toLowerCase();
+    matchingCards = allCards.filter(card =>
+      card.name.toLowerCase().includes(lowerQuery)
+    );
+  }
 
   if (matchingCards.length === 0) {
     cardsList.innerHTML = '<div class="no-cards">No cards found</div>';
