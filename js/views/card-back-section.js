@@ -216,3 +216,18 @@ loadDependencies();
 t.render(function() {
   loadDependencies();
 });
+
+// Listen for card changes (when navigating to different cards)
+let lastCardId = currentCardId;
+setInterval(async function() {
+  try {
+    const card = await t.card('id');
+    if (card.id !== lastCardId) {
+      lastCardId = card.id;
+      currentCardId = card.id;
+      loadDependencies();
+    }
+  } catch (e) {
+    // Card context may not be available
+  }
+}, 500);
