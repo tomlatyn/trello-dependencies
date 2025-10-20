@@ -1,173 +1,233 @@
-/* Card back section styles */
-body {
-  margin: 0;
-  padding: 8px;
-  background-color: transparent;
-  color: #172b4d;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+/* Card back section styles - matching approval project design */
+
+* {
+  box-sizing: border-box;
 }
 
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* View wrapper - contains the whole view with background and radius */
 .dependencies-container {
-  width: 100%;
+  padding: 8px;
+  background-color: var(--ds-surface, white);
+  color: var(--ds-text, #172b4d);
+  font-size: 14px;
+  line-height: 1.4;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* Dark mode wrapper */
+body.dark-mode .dependencies-container {
+  background-color: #282E32 !important;
+  color: #b6c2cf !important;
 }
 
 #dependencies-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
+/* Dependency item - matching approval member styling */
 .dependency-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 8px 10px;
-  background-color: #f4f5f7;
-  border-radius: 3px;
-  border: 1px solid #dfe1e6;
-  transition: all 0.2s ease;
+  padding: 10px;
+  position: relative;
+  cursor: default;
+  transition: background-color 0.1s ease;
 }
 
 .dependency-item:hover {
-  background-color: #ebecf0;
-  border-color: #c1c7d0;
+  background-color: #f4f5f7;
 }
 
+body.dark-mode .dependency-item:hover {
+  background-color: #22272b;
+}
+
+/* Divider between rows */
+.dependency-item::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #DDDFE5;
+  margin: 5px 0;
+}
+
+body.dark-mode .dependency-item::after {
+  background-color: #374149;
+}
+
+/* Dependency info section */
 .dependency-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
   min-width: 0;
 }
 
+/* Dependency type label */
 .dependency-type {
-  font-size: 11px;
-  font-weight: 600;
-  color: #5e6c84;
+  font-size: 10px;
+  color: #5E6C84;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
+body.dark-mode .dependency-type {
+  color: #B6C2CF;
+}
+
+/* Card link - matching member name styling */
 .card-link {
+  font-weight: 600;
+  color: #44546F;
   font-size: 14px;
-  color: #0079bf;
-  text-decoration: none;
-  cursor: pointer;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.1s ease;
 }
 
 .card-link:hover {
-  text-decoration: underline;
+  color: #0079bf;
+}
+
+body.dark-mode .card-link {
+  color: #B6C2CF !important;
+}
+
+body.dark-mode .card-link:hover {
+  color: #579dff !important;
 }
 
 .card-link.resolved {
   text-decoration: line-through;
-  color: #5e6c84;
+  opacity: 0.6;
 }
 
+/* Action buttons section */
 .dependency-actions {
   display: flex;
-  gap: 4px;
-  margin-left: 8px;
+  gap: 8px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  margin-left: 16px;
 }
 
+/* Action buttons - matching approval project styling */
 .btn-resolve,
 .btn-remove {
-  width: 24px;
-  height: 24px;
+  padding: 4px;
   border: none;
-  border-radius: 3px;
-  background-color: #091e4221;
-  color: #44546f;
-  font-size: 16px;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
+  transition: all 0.1s ease;
+  background-color: #F6F6F7;
+  color: #182A4E;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  padding: 0;
+  width: 24px;
+  height: 24px;
   line-height: 1;
 }
 
 .btn-resolve:hover,
 .btn-remove:hover {
-  background-color: #091e424f;
+  background-color: #e8e9ea;
 }
 
+/* Active resolve button - green for resolved */
 .btn-resolve.active {
-  background-color: #61bd4f;
-  color: #fff;
+  background-color: #BAF3DB;
+  color: #174B35;
 }
 
-.btn-remove {
-  font-size: 20px;
-  font-weight: 300;
+.btn-resolve.active:hover {
+  background-color: #a8e8ca;
 }
 
+/* Remove button hover - red */
 .btn-remove:hover {
-  background-color: #eb5a46;
-  color: #fff;
+  background-color: #FFD5D2;
+  color: #5D1F1A;
 }
 
-.no-dependencies {
-  padding: 16px;
-  text-align: center;
-  color: #5e6c84;
-  font-size: 13px;
-  font-style: italic;
-}
-
-/* Dark mode */
-body.dark-mode {
-  color: #b6c2cf;
-}
-
-body.dark-mode .dependency-item {
-  background-color: #22272b;
-  border-color: #404040;
-}
-
-body.dark-mode .dependency-item:hover {
-  background-color: #282e33;
-  border-color: #505050;
-}
-
-body.dark-mode .dependency-type {
-  color: #9fadbc;
-}
-
-body.dark-mode .card-link {
-  color: #579dff;
-}
-
-body.dark-mode .card-link.resolved {
-  color: #9fadbc;
-}
-
+/* Dark mode action buttons */
 body.dark-mode .btn-resolve,
 body.dark-mode .btn-remove {
-  background-color: #a1bdd914;
-  color: #9fadbc;
+  background-color: #2C333A;
+  color: #B6C2CF;
 }
 
 body.dark-mode .btn-resolve:hover,
 body.dark-mode .btn-remove:hover {
-  background-color: #a6c5e229;
+  background-color: #252b31;
 }
 
 body.dark-mode .btn-resolve.active {
-  background-color: #4bce97;
-  color: #1d2125;
+  background-color: #174B35;
+  color: #BAF3DB;
+}
+
+body.dark-mode .btn-resolve.active:hover {
+  background-color: #134a32;
 }
 
 body.dark-mode .btn-remove:hover {
-  background-color: #f87168;
-  color: #1d2125;
+  background-color: #5D1F1A;
+  color: #FFD5D2;
+}
+
+/* No dependencies state */
+.no-dependencies {
+  text-align: center;
+  padding: 20px;
+  color: var(--ds-text-subtle, #6b778c);
+  font-style: italic;
+  font-size: 10px;
+  background-color: var(--ds-surface, white);
 }
 
 body.dark-mode .no-dependencies {
-  color: #9fadbc;
+  background-color: #1d2125 !important;
+  color: #9fadbc !important;
+}
+
+/* Responsive Styles */
+@media (max-width: 400px) {
+  .dependency-item {
+    padding: 6px 8px;
+  }
+
+  .dependency-info {
+    font-size: 12px;
+  }
+
+  .card-link {
+    font-size: 12px;
+  }
+
+  .dependency-type {
+    font-size: 9px;
+  }
+
+  .dependency-actions {
+    margin-left: 8px;
+  }
 }
