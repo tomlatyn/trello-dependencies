@@ -97,7 +97,7 @@ async function loadDependencies() {
         <div class="dependency-item">
           <div class="dependency-info">
             <span class="dependency-type">${DEPENDENCY_DISPLAY_NAMES[dep.type]}</span>
-            <a href="${cardUrl}" class="card-link ${dep.resolved ? 'resolved' : ''}" target="_top">
+            <a href="${cardUrl}" class="card-link ${dep.resolved ? 'resolved' : ''}" data-card-url="${cardUrl}">
               ${escapeHtml(dep.cardName)}
             </a>
           </div>
@@ -125,6 +125,15 @@ async function loadDependencies() {
 
 // Attach event listeners to buttons and links
 function attachEventListeners() {
+  // Card links - use t.navigate() to navigate to the card
+  document.querySelectorAll('.card-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const cardUrl = this.dataset.cardUrl;
+      t.navigate({ url: cardUrl });
+    });
+  });
+
   // Resolve buttons
   document.querySelectorAll('.btn-resolve').forEach(btn => {
     btn.addEventListener('click', async function() {
