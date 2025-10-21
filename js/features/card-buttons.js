@@ -1,7 +1,7 @@
 function cardButtonsHandler(t) {
   return [{
     icon: './images/icon.png',
-    text: 'Add Dependency',
+    text: 'Dependencies SM',
     callback: function(t) {
       return t.popup({
         title: 'Add Dependency',

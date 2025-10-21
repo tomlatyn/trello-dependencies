@@ -82,9 +82,12 @@ function searchCards(query) {
     });
   } else {
     const lowerQuery = query.toLowerCase();
-    matchingCards = allCards.filter(card =>
-      card.name.toLowerCase().includes(lowerQuery)
-    );
+    matchingCards = allCards
+      .filter(card => card.name.toLowerCase().includes(lowerQuery))
+      .sort((a, b) => {
+        // Sort search results by date created (newest first)
+        return b.id.localeCompare(a.id);
+      });
   }
 
   if (matchingCards.length === 0) {
