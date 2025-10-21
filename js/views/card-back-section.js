@@ -102,9 +102,9 @@ async function loadDependencies() {
             </a>
           </div>
           <div class="dependency-actions">
-            <button class="btn-resolve ${dep.resolved ? 'active' : ''}" data-dep-id="${dep.id}" title="${dep.resolved ? 'Unresolve' : 'Resolve'}">
+            <button class="btn-resolve ${dep.resolved ? 'resolved' : ''}" data-dep-id="${dep.id}" title="${dep.resolved ? 'Mark as unresolved' : 'Mark as resolved'}">
               <img class="btn-icon" src="../images/button-resolve.svg" alt="Resolve">
-              <span>Resolve</span>
+              <span>${dep.resolved ? 'Resolved' : 'Resolve'}</span>
             </button>
             <button class="btn-remove" data-dep-id="${dep.id}" data-linked-card-id="${dep.cardId}" title="Remove">
               <img class="btn-icon" src="../images/button-remove.svg" alt="Remove">

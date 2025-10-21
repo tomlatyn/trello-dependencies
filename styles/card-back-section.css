@@ -51,8 +51,8 @@ body.dark-mode .dependency-item:hover {
   background-color: #22272b;
 }
 
-/* Divider between rows */
-.dependency-item::after {
+/* Divider between rows - only show if not the last child OR if there are multiple items */
+.dependency-item:not(:last-child)::after {
   content: '';
   position: absolute;
   bottom: -5px;
@@ -63,7 +63,7 @@ body.dark-mode .dependency-item:hover {
   margin: 5px 0;
 }
 
-body.dark-mode .dependency-item::after {
+body.dark-mode .dependency-item:not(:last-child)::after {
   background-color: #374149;
 }
 
@@ -169,6 +169,20 @@ body.dark-mode .btn-icon {
   filter: brightness(0) saturate(100%) invert(85%) sepia(12%) saturate(288%) hue-rotate(171deg) brightness(91%) contrast(88%);
 }
 
+/* Resolved state - green styling */
+.btn-resolve.resolved {
+  background-color: #BAF3DB;
+  color: #174B35;
+}
+
+.btn-resolve.resolved:hover {
+  background-color: #a8e8ca;
+}
+
+.btn-resolve.resolved .btn-icon {
+  filter: brightness(0) saturate(100%) invert(19%) sepia(23%) saturate(1661%) hue-rotate(104deg) brightness(94%) contrast(93%);
+}
+
 /* Dark mode action buttons */
 body.dark-mode .btn-resolve,
 body.dark-mode .btn-remove {
@@ -179,6 +193,20 @@ body.dark-mode .btn-remove {
 body.dark-mode .btn-resolve:hover,
 body.dark-mode .btn-remove:hover {
   background-color: #252b31;
+}
+
+/* Dark mode resolved state */
+body.dark-mode .btn-resolve.resolved {
+  background-color: #174B35;
+  color: #BAF3DB;
+}
+
+body.dark-mode .btn-resolve.resolved:hover {
+  background-color: #134a32;
+}
+
+body.dark-mode .btn-resolve.resolved .btn-icon {
+  filter: brightness(0) saturate(100%) invert(89%) sepia(17%) saturate(586%) hue-rotate(90deg) brightness(98%) contrast(92%);
 }
 
 /* No dependencies state */
