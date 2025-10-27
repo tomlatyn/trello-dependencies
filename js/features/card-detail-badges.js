@@ -3,8 +3,8 @@ function cardDetailBadgesHandler(t) {
   // Always show the Dependencies badge that opens the add dependency popup
   return [{
     title: 'Dependencies',
-    text: 'Set dependency',
-    color: 'green',
+    text: 'Add dependency',
+    color: 'red',
     callback: function(t) {
       return t.popup({
         title: 'Add Dependency',
