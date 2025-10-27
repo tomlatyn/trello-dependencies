@@ -4,7 +4,7 @@ function cardDetailBadgesHandler(t) {
   return [{
     title: 'Dependencies',
     text: 'Set dependency',
-    color: 'blue',
+    color: 'green',
     callback: function(t) {
       return t.popup({
         title: 'Add Dependency',
