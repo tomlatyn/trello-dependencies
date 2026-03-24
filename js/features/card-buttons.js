@@ -6,7 +6,7 @@ function cardButtonsHandler(t) {
       return t.popup({
         title: 'Add Dependency',
         url: './views/add-dependency.html',
-        height: 600
+        height: 700
       });
     }
   }];

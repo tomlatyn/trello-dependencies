@@ -9,7 +9,7 @@ function cardDetailBadgesHandler(t) {
       return t.popup({
         title: 'Add Dependency',
         url: './views/add-dependency.html',
-        height: 500
+        height: 700
       });
     }
   }];
