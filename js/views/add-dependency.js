@@ -50,17 +50,30 @@ t.subscribeToThemeChanges(function(theme) {
 const dependencyTypeSelect = document.getElementById('dependency-type');
 const cardSearchInput = document.getElementById('card-search');
 const cardsList = document.getElementById('cards-list');
+const confirmBtn = document.getElementById('confirm-btn');
+const snackbar = document.getElementById('snackbar');
+const depPreviewCurrent = document.getElementById('dep-preview-current');
+const depPreviewTarget = document.getElementById('dep-preview-target');
+const depPreviewTypeBadge = document.getElementById('dep-preview-type-badge');
+
+let selectedCardId = null;
+let selectedCardName = null;
+let currentCardName = '';
 
 // Initialize
 async function init() {
   const [cards, lists, card] = await Promise.all([
     t.cards('all'),
     t.lists('all'),
-    t.card('id')
+    t.card('id', 'name')
   ]);
 
   currentCardId = card.id;
+  currentCardName = card.name;
   allLists = lists;
+
+  depPreviewCurrent.textContent = card.name;
+  updateDepPreview();
 
   // Filter out the current card from the list
   allCards = cards.filter(c => c.id !== currentCardId);
@@ -110,9 +123,17 @@ function searchCards(query) {
   // Add click handlers
   document.querySelectorAll('.card-item').forEach(item => {
     item.addEventListener('click', function() {
-      const cardId = this.dataset.cardId;
-      const cardName = this.dataset.cardName;
-      addDependency(cardId, cardName);
+      // Deselect previously selected
+      document.querySelectorAll('.card-item.selected').forEach(el => el.classList.remove('selected'));
+      this.classList.add('selected');
+
+      selectedCardId = this.dataset.cardId;
+      selectedCardName = this.dataset.cardName;
+
+      // Clear error state on card list when a card is selected
+      cardsList.closest('.cards-list-container').classList.remove('error');
+
+      updateDepPreview();
     });
   });
 }
@@ -161,6 +182,28 @@ async function addDependency(linkedCardId, linkedCardName) {
   t.closePopup();
 }
 
+// Update the dependency preview widget
+function updateDepPreview() {
+  const type = dependencyTypeSelect.value;
+
+  depPreviewTypeBadge.textContent = type ? DEPENDENCY_DISPLAY_NAMES[type] : '—';
+
+  if (selectedCardName) {
+    depPreviewTarget.textContent = selectedCardName;
+    depPreviewTarget.classList.remove('dep-preview-placeholder');
+  } else {
+    depPreviewTarget.textContent = 'select a card…';
+    depPreviewTarget.classList.add('dep-preview-placeholder');
+  }
+}
+
+// Show snackbar message
+function showSnackbar(message) {
+  snackbar.textContent = message;
+  snackbar.classList.add('show');
+  setTimeout(() => snackbar.classList.remove('show'), 3000);
+}
+
 // Helper functions
 function generateId() {
   return 'dep_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -175,6 +218,41 @@ function escapeHtml(text) {
 // Event listeners
 cardSearchInput.addEventListener('input', function() {
   searchCards(this.value);
+});
+
+dependencyTypeSelect.addEventListener('change', function() {
+  this.classList.remove('error');
+  updateDepPreview();
+});
+
+
+confirmBtn.addEventListener('click', async function() {
+  const dependencyType = dependencyTypeSelect.value;
+  const hasCard = !!selectedCardId;
+  const hasType = !!dependencyType;
+
+  // Clear previous error states
+  dependencyTypeSelect.classList.remove('error');
+  cardsList.closest('.cards-list-container').classList.remove('error');
+
+  if (!hasCard && !hasType) {
+    dependencyTypeSelect.classList.add('error');
+    cardsList.closest('.cards-list-container').classList.add('error');
+    showSnackbar('Please select a dependency type and a card.');
+    return;
+  }
+  if (!hasType) {
+    dependencyTypeSelect.classList.add('error');
+    showSnackbar('Please select a dependency type.');
+    return;
+  }
+  if (!hasCard) {
+    cardsList.closest('.cards-list-container').classList.add('error');
+    showSnackbar('Please select a card to link.');
+    return;
+  }
+
+  await addDependency(selectedCardId, selectedCardName);
 });
 
 // Initialize

@@ -14,6 +14,7 @@ body {
   gap: 12px;
   height: 100vh;
   overflow: hidden;
+  padding-bottom: 4px;
 }
 
 .form-group {
@@ -101,6 +102,137 @@ body {
   font-size: 13px;
 }
 
+/* Dependency preview */
+.dep-preview {
+  border-left: 2px solid #dfe1e6;
+  padding: 2px 0 2px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.dep-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dep-preview-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #dfe1e6;
+  flex-shrink: 0;
+}
+
+.dep-preview-card {
+  font-size: 12px;
+  font-weight: 600;
+  color: #172b4d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dep-preview-type-badge {
+  font-size: 11px;
+  color: #5e6c84;
+  background: #f4f5f7;
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-weight: 500;
+  align-self: flex-start;
+  margin-left: 11px;
+}
+
+.dep-preview-placeholder {
+  color: #97a0af !important;
+  font-weight: 400 !important;
+}
+
+body.dark-mode .dep-preview {
+  border-left-color: #404040;
+}
+
+body.dark-mode .dep-preview-dot {
+  background: #404040;
+}
+
+body.dark-mode .dep-preview-card {
+  color: #b6c2cf;
+}
+
+body.dark-mode .dep-preview-type-badge {
+  color: #9fadbc;
+  background: #2c333a;
+}
+
+/* Error state */
+.select-input.error,
+.text-input.error {
+  border-color: #eb5a46;
+  background-color: #fff5f4;
+}
+
+.cards-list-container.error {
+  border-color: #eb5a46;
+  background-color: #fff5f4;
+}
+
+/* Selected card highlight */
+.card-item.selected {
+  background-color: #e6f2ff;
+  border-color: #0079bf;
+}
+
+
+/* Confirm button */
+.confirm-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #0079bf;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.confirm-btn:hover {
+  background-color: #026aa7;
+}
+
+.confirm-btn:active {
+  background-color: #055a8c;
+}
+
+/* Snackbar */
+.snackbar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background-color: #172b4d;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+}
+
+.snackbar.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* Dark mode */
 body.dark-mode {
   background-color: transparent;
@@ -149,6 +281,37 @@ body.dark-mode .card-list {
 
 body.dark-mode .no-cards {
   color: #9fadbc;
+}
+
+body.dark-mode .select-input.error,
+body.dark-mode .text-input.error {
+  border-color: #eb5a46;
+  background-color: #2e1f1f;
+}
+
+body.dark-mode .cards-list-container.error {
+  border-color: #eb5a46;
+  background-color: #2e1f1f;
+}
+
+body.dark-mode .card-item.selected {
+  background-color: #1c3a5e;
+  border-color: #579dff;
+}
+
+
+body.dark-mode .confirm-btn {
+  background-color: #579dff;
+  color: #1d2125;
+}
+
+body.dark-mode .confirm-btn:hover {
+  background-color: #85b8ff;
+}
+
+body.dark-mode .snackbar {
+  background-color: #b6c2cf;
+  color: #1d2125;
 }
 
 /* Scrollbar styling */

@@ -11,6 +11,7 @@
     <div class="form-group">
       <label for="dependency-type">Dependency Type</label>
       <select id="dependency-type" class="select-input">
+        <option value="" disabled selected>Select dependency type...</option>
         <option value="blocks">Blocks</option>
         <option value="is-blocked-by">Is Blocked By</option>
         <option value="is-related-to">Is Related To</option>
@@ -18,6 +19,18 @@
         <option value="is-child-to">Is Child To</option>
         <option value="is-parent-to">Is Parent To</option>
       </select>
+    </div>
+
+    <div class="dep-preview">
+      <div class="dep-preview-row">
+        <div class="dep-preview-dot"></div>
+        <span id="dep-preview-current" class="dep-preview-card"></span>
+      </div>
+      <span id="dep-preview-type-badge" class="dep-preview-type-badge"></span>
+      <div class="dep-preview-row">
+        <div class="dep-preview-dot"></div>
+        <span id="dep-preview-target" class="dep-preview-card dep-preview-placeholder">select a card…</span>
+      </div>
     </div>
 
     <div class="form-group">
@@ -35,7 +48,11 @@
         <div class="no-cards">Loading cards...</div>
       </div>
     </div>
+
+    <button id="confirm-btn" class="confirm-btn">Add dependency</button>
   </div>
+
+  <div id="snackbar" class="snackbar"></div>
 
   <script src="../js/views/add-dependency.js"></script>
 </body>
