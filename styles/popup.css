@@ -216,7 +216,7 @@ body.dark-mode .dep-preview-type-badge {
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%) translateY(20px);
-  background-color: #172b4d;
+  background-color: #eb5a46;
   color: #fff;
   padding: 8px 16px;
   border-radius: 4px;
@@ -310,8 +310,8 @@ body.dark-mode .confirm-btn:hover {
 }
 
 body.dark-mode .snackbar {
-  background-color: #b6c2cf;
-  color: #1d2125;
+  background-color: #eb5a46;
+  color: #fff;
 }
 
 /* Scrollbar styling */
