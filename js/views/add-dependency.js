@@ -23,6 +23,7 @@ const DEPENDENCY_DISPLAY_NAMES = {
 let allCards = [];
 let allLists = [];
 let currentCardId = '';
+let currentCardDependencies = [];
 
 // Theme handling
 function applyTheme() {
@@ -72,6 +73,8 @@ async function init() {
   currentCardName = card.name;
   allLists = lists;
 
+  currentCardDependencies = await t.get(currentCardId, 'shared', 'dependencies') || [];
+
   depPreviewCurrent.textContent = card.name;
   updateDepPreview();
 
@@ -80,6 +83,47 @@ async function init() {
 
   // Show all cards initially
   searchCards('');
+}
+
+// Check a relationship by its type and its reverse type. Dependencies are
+// stored on both cards, so either direction represents the same relationship.
+function dependencyTypesMatch(existingType, requestedType) {
+  return existingType === requestedType || existingType === REVERSE_DEPENDENCY_MAP[requestedType];
+}
+
+function hasDependencyForCard(dependencies, linkedCardId, dependencyType) {
+  return dependencies.some(dep => {
+    return dep.cardId === linkedCardId && dependencyTypesMatch(dep.type, dependencyType);
+  });
+}
+
+function isCardUnavailable(cardId, dependencyType) {
+  return !!dependencyType && hasDependencyForCard(currentCardDependencies, cardId, dependencyType);
+}
+
+// Disable dependency types that already exist for the selected target card.
+function updateDependencyTypeOptions() {
+  Array.from(dependencyTypeSelect.options).forEach(option => {
+    if (!option.value) return;
+
+    const baseLabel = option.dataset.baseLabel || DEPENDENCY_DISPLAY_NAMES[option.value] || option.textContent;
+    const unavailable = !!selectedCardId && isCardUnavailable(selectedCardId, option.value);
+
+    option.dataset.baseLabel = baseLabel;
+    option.disabled = unavailable;
+    option.textContent = unavailable ? `${baseLabel} (already exists)` : baseLabel;
+
+    if (unavailable) {
+      option.setAttribute('aria-disabled', 'true');
+    } else {
+      option.removeAttribute('aria-disabled');
+    }
+
+    // Keep the form valid if data changed while the popup was open.
+    if (unavailable && option.selected) {
+      dependencyTypeSelect.value = '';
+    }
+  });
 }
 
 // Search and display cards
@@ -108,14 +152,24 @@ function searchCards(query) {
     return;
   }
 
+  const selectedDependencyType = dependencyTypeSelect.value;
+
   cardsList.innerHTML = matchingCards.map(card => {
     const list = allLists.find(l => l.id === card.idList);
     const listName = list ? list.name : 'Unknown List';
+    const unavailable = isCardUnavailable(card.id, selectedDependencyType);
+    const selected = card.id === selectedCardId;
+    const stateClass = [
+      'card-item',
+      unavailable ? 'disabled' : '',
+      selected ? 'selected' : ''
+    ].filter(Boolean).join(' ');
 
     return `
-      <div class="card-item" data-card-id="${card.id}" data-card-name="${escapeHtml(card.name)}">
+      <div class="${stateClass}" data-card-id="${card.id}" data-card-name="${escapeHtml(card.name)}"${unavailable ? ' aria-disabled="true"' : ''}>
         <div class="card-name">${escapeHtml(card.name)}</div>
         <div class="card-list">in list <strong>${escapeHtml(listName)}</strong></div>
+        ${unavailable ? '<div class="card-status">Dependency already exists</div>' : ''}
       </div>
     `;
   }).join('');
@@ -123,12 +177,16 @@ function searchCards(query) {
   // Add click handlers
   document.querySelectorAll('.card-item').forEach(item => {
     item.addEventListener('click', function() {
+      if (this.classList.contains('disabled')) return;
+
       // Deselect previously selected
       document.querySelectorAll('.card-item.selected').forEach(el => el.classList.remove('selected'));
       this.classList.add('selected');
 
       selectedCardId = this.dataset.cardId;
       selectedCardName = this.dataset.cardName;
+
+      updateDependencyTypeOptions();
 
       // Clear error state on card list when a card is selected
       cardsList.closest('.cards-list-container').classList.remove('error');
@@ -143,8 +201,26 @@ async function addDependency(linkedCardId, linkedCardName) {
   const dependencyType = dependencyTypeSelect.value;
   const reverseType = REVERSE_DEPENDENCY_MAP[dependencyType];
 
-  // Get current card info
-  const currentCard = await t.card('name');
+  // Re-read both cards immediately before writing, so two open popups cannot
+  // create the same dependency after the initial availability check.
+  const [currentCard, currentCardDeps, linkedCardDeps] = await Promise.all([
+    t.card('name'),
+    t.get(currentCardId, 'shared', 'dependencies'),
+    t.get(linkedCardId, 'shared', 'dependencies')
+  ]);
+
+  const existingCurrentCardDeps = currentCardDeps || [];
+  const existingLinkedCardDeps = linkedCardDeps || [];
+  const dependencyAlreadyExists = hasDependencyForCard(existingCurrentCardDeps, linkedCardId, dependencyType)
+    || hasDependencyForCard(existingLinkedCardDeps, currentCardId, dependencyType);
+
+  if (dependencyAlreadyExists) {
+    currentCardDependencies = existingCurrentCardDeps;
+    updateDependencyTypeOptions();
+    searchCards(cardSearchInput.value);
+    showSnackbar('This dependency already exists between these cards.');
+    return false;
+  }
 
   // Create dependency object for current card
   const currentCardDependency = {
@@ -164,22 +240,19 @@ async function addDependency(linkedCardId, linkedCardName) {
     resolved: false
   };
 
-  // Get existing dependencies
-  const currentCardDeps = await t.get(currentCardId, 'shared', 'dependencies') || [];
-  const linkedCardDeps = await t.get(linkedCardId, 'shared', 'dependencies') || [];
-
   // Add new dependencies
-  currentCardDeps.push(currentCardDependency);
-  linkedCardDeps.push(linkedCardDependency);
+  existingCurrentCardDeps.push(currentCardDependency);
+  existingLinkedCardDeps.push(linkedCardDependency);
 
   // Save to both cards
   await Promise.all([
-    t.set(currentCardId, 'shared', 'dependencies', currentCardDeps),
-    t.set(linkedCardId, 'shared', 'dependencies', linkedCardDeps)
+    t.set(currentCardId, 'shared', 'dependencies', existingCurrentCardDeps),
+    t.set(linkedCardId, 'shared', 'dependencies', existingLinkedCardDeps)
   ]);
 
   // Close popup
   t.closePopup();
+  return true;
 }
 
 // Update the dependency preview widget
@@ -222,6 +295,7 @@ cardSearchInput.addEventListener('input', function() {
 
 dependencyTypeSelect.addEventListener('change', function() {
   this.classList.remove('error');
+  searchCards(cardSearchInput.value);
   updateDepPreview();
 });
 
