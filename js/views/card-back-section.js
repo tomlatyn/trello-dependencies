@@ -20,6 +20,31 @@ const REVERSE_DEPENDENCY_MAP = {
   'is-parent-to': 'is-child-to'
 };
 
+// New dependencies share a relationshipId on both cards. Older records do
+// not have it, so the helpers below fall back to the reverse type and card ID.
+function isCurrentDependencyMatch(candidate, dependency) {
+  if (candidate.id === dependency.id) return true;
+
+  return !dependency.relationshipId
+    && !candidate.relationshipId
+    && candidate.cardId === dependency.cardId
+    && candidate.type === dependency.type;
+}
+
+function isReverseDependencyMatch(candidate, dependency) {
+  const reverseType = REVERSE_DEPENDENCY_MAP[dependency.type];
+
+  if (candidate.cardId !== currentCardId || candidate.type !== reverseType) {
+    return false;
+  }
+
+  if (dependency.relationshipId) {
+    return candidate.relationshipId === dependency.relationshipId;
+  }
+
+  return !candidate.relationshipId;
+}
+
 let currentCardId = '';
 
 // Theme handling
@@ -161,17 +186,24 @@ async function toggleResolve(depId) {
 
   if (dep) {
     const newResolvedState = !dep.resolved;
-    dep.resolved = newResolvedState;
-    await t.set(currentCardId, 'shared', 'dependencies', dependencies);
+    const updatedDependencies = dependencies.map(candidate => {
+      return isCurrentDependencyMatch(candidate, dep)
+        ? { ...candidate, resolved: newResolvedState }
+        : candidate;
+    });
+    await t.set(currentCardId, 'shared', 'dependencies', updatedDependencies);
 
     // Update the linked card's reverse dependency
     const linkedCardId = dep.cardId;
     const linkedCardDeps = await t.get(linkedCardId, 'shared', 'dependencies') || [];
-    const reverseDep = linkedCardDeps.find(d => d.cardId === currentCardId);
+    const updatedLinkedCardDeps = linkedCardDeps.map(candidate => {
+      return isReverseDependencyMatch(candidate, dep)
+        ? { ...candidate, resolved: newResolvedState }
+        : candidate;
+    });
 
-    if (reverseDep) {
-      reverseDep.resolved = newResolvedState;
-      await t.set(linkedCardId, 'shared', 'dependencies', linkedCardDeps);
+    if (updatedLinkedCardDeps.some((candidate, index) => candidate !== linkedCardDeps[index])) {
+      await t.set(linkedCardId, 'shared', 'dependencies', updatedLinkedCardDeps);
     }
 
     loadDependencies();
@@ -194,7 +226,7 @@ async function removeDependency(depId, linkedCardId) {
   if (!depToRemove) return;
 
   // Remove from current card
-  const filteredCurrentDeps = currentCardDeps.filter(d => d.id !== depId);
+  const filteredCurrentDeps = currentCardDeps.filter(d => !isCurrentDependencyMatch(d, depToRemove));
 
   if (filteredCurrentDeps.length === 0) {
     await t.remove(currentCardId, 'shared', 'dependencies');
@@ -204,7 +236,7 @@ async function removeDependency(depId, linkedCardId) {
 
   // Remove reverse dependency from linked card
   const linkedCardDeps = await t.get(linkedCardId, 'shared', 'dependencies') || [];
-  const filteredLinkedDeps = linkedCardDeps.filter(d => d.cardId !== currentCardId);
+  const filteredLinkedDeps = linkedCardDeps.filter(d => !isReverseDependencyMatch(d, depToRemove));
 
   if (filteredLinkedDeps.length === 0) {
     await t.remove(linkedCardId, 'shared', 'dependencies');

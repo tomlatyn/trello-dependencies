@@ -92,6 +92,8 @@ function dependencyTypesMatch(existingType, requestedType) {
 }
 
 function hasDependencyForCard(dependencies, linkedCardId, dependencyType) {
+  // Resolved dependencies still occupy this card/type pair and must block
+  // creating the same relationship again.
   return dependencies.some(dep => {
     return dep.cardId === linkedCardId && dependencyTypesMatch(dep.type, dependencyType);
   });
@@ -222,9 +224,12 @@ async function addDependency(linkedCardId, linkedCardName) {
     return false;
   }
 
+  const relationshipId = generateId();
+
   // Create dependency object for current card
   const currentCardDependency = {
     id: generateId(),
+    relationshipId,
     type: dependencyType,
     cardId: linkedCardId,
     cardName: linkedCardName,
@@ -234,6 +239,7 @@ async function addDependency(linkedCardId, linkedCardName) {
   // Create reverse dependency object for linked card
   const linkedCardDependency = {
     id: generateId(),
+    relationshipId,
     type: reverseType,
     cardId: currentCardId,
     cardName: currentCard.name,

@@ -54,12 +54,18 @@ Dependencies are stored using Trello's storage API on each card under the key `d
 ```javascript
 {
   id: "dep_123456789_abc",
+  relationshipId: "rel_123456789_xyz",
   type: "blocks",
   cardId: "linked-card-id",
   cardName: "Linked Card Name",
   resolved: false
 }
 ```
+
+Both records created for a dependency share the same `relationshipId`. This
+keeps resolve and remove operations linked to exactly one dependency on each
+card. Older records without `relationshipId` remain supported through a
+card/type fallback.
 
 ### Bidirectional Dependencies
 
